@@ -25,9 +25,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'd$dp$&432y@9d=5@i3k_*-cd_&*-rhixpi5f-%nq4tz8++il%m'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [os.environ.get('ALLOWED_HOSTS')]
 
 
 # Application definition
@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'allauth',
     'allauth.account',
+    'django_ses'
 ]
 
 MIDDLEWARE = [
@@ -145,21 +146,25 @@ LOGGING = {
     'loggers':{
         #Djangoが利用するロガー
         'django':{
-            'handlers': ['console'],
+            'handlers': ['file'],
             'level': 'INFO',
         },
     #diaryアプリケーションが利用するロガー
     'diary':{
-        'handlers': ['console'],
-        'level': 'DEBUG',
+        'handlers': ['file'],
+        'level': 'INFO',
         },
     },
     #ハンドラの設定
     'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'dev',
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/'),
+            'formatter': 'prod',
+            'when': 'D',
+            'interval': 1,
+            'backupCount': 7,
         },
     },
     #フォーマッタの設定
@@ -215,7 +220,13 @@ ACCOUNT_EMAIL_SUBJECT_PREFIX = ''
 
 #デフォルトのメール設定元を設定
 DEFAULT_FROM_EMAIL = 'admin@exmaple.com'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django_ses.SESBackend'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+
+STATIC_ROOT = 'usr/share/nginx/html/static'
+MEDIA_ROOT = 'usr/share/nginx/html/media'
+
+AWS_SES_ACCESS_KEY_ID = os.environ.get('AWS_SES_ACCESS_KEY_ID')
+AWS_SES_SECRET_ACCESS_KEY = os.environ.get('AWS_SES_SECRET_ACCESS_KEY')
